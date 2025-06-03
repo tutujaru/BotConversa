@@ -1,15 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Box,
-  Button,
-  FormControl,
-  IconButton,
-  Input,
-  InputAdornment,
-  makeStyles,
-  Paper,
   Typography,
   CircularProgress,
+  InputBase,
+  IconButton,
+  Paper,
 } from "@material-ui/core";
 import {
   Send as SendIcon,
@@ -29,28 +25,30 @@ import toastError from "../../errors/toastError";
 import MicRecorder from "mic-recorder-to-mp3";
 import RecordingTimer from "../../components/MessageInputCustom/RecordingTimer";
 
+import { makeStyles } from "@material-ui/core/styles";
+
 const useStyles = makeStyles((theme) => ({
-  mainContainer: {
+  container: {
     display: "flex",
     flexDirection: "column",
     height: "100%",
-    borderLeft: "1px solid rgba(0,0,0,0.12)",
-    backgroundColor: "#ece5dd",
+    backgroundColor: "#f9f9f9",
+    borderLeft: "1px solid #ccc",
   },
-  messageList: {
+  messagesWrapper: {
     flex: 1,
     overflowY: "auto",
-    padding: "10px",
+    padding: theme.spacing(2),
     backgroundImage: "url('/whatsapp-bg.png')",
     backgroundSize: "cover",
   },
-  messageBox: {
-    maxWidth: "60%",
-    padding: "10px",
-    borderRadius: "7.5px",
-    marginBottom: "10px",
+  messageBubble: {
+    maxWidth: "70%",
+    padding: theme.spacing(1.5),
+    marginBottom: theme.spacing(1.5),
+    borderRadius: theme.spacing(2),
     wordBreak: "break-word",
-    position: "relative",
+    boxShadow: theme.shadows[1],
   },
   sent: {
     marginLeft: "auto",
@@ -59,30 +57,32 @@ const useStyles = makeStyles((theme) => ({
   },
   received: {
     marginRight: "auto",
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     borderBottomLeftRadius: 0,
   },
   inputArea: {
-    padding: "10px",
-    borderTop: "1px solid rgba(0,0,0,0.12)",
-    backgroundColor: "#f0f0f0",
+    display: "flex",
+    alignItems: "center",
+    padding: theme.spacing(1),
+    borderTop: "1px solid #ccc",
+    backgroundColor: "#fff",
   },
   input: {
     flex: 1,
-    marginRight: "10px",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: "10px 15px",
+    marginRight: theme.spacing(1),
+    padding: theme.spacing(1, 2),
+    backgroundColor: "#f1f1f1",
+    borderRadius: theme.spacing(2),
   },
-  uploadInput: {
+  fileInput: {
     display: "none",
   },
   mediaPreview: {
-    padding: "10px",
-    backgroundColor: "#f0f0f0",
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+    padding: theme.spacing(1),
+    backgroundColor: "#eee",
   },
 }));
 
@@ -106,16 +106,16 @@ export default function ChatMessages({
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
 
+  useEffect(() => {
+    scrollToBottomRef.current = scrollToBottom;
+    scrollToBottom();
+  }, [messages]);
+
   const scrollToBottom = () => {
     if (baseRef.current) {
       baseRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
-
-  useEffect(() => {
-    scrollToBottomRef.current = scrollToBottom;
-    scrollToBottom();
-  }, [messages]);
 
   const handleScroll = (e) => {
     if (!pageInfo.hasMore || loading) return;
@@ -124,33 +124,32 @@ export default function ChatMessages({
 
   const handleChangeMedias = (e) => {
     if (!e.target.files) return;
-    const selectedMedias = Array.from(e.target.files);
-    setMedias(selectedMedias);
+    setMedias(Array.from(e.target.files));
   };
 
-  const checkMessageMedia = (message) => {
-    switch (message.mediaType) {
-      case "image": return <ModalImageCors imageUrl={message.mediaPath} />;
-      case "audio": return <audio controls src={message.mediaPath} />;
-      case "video": return <video width="250" controls src={message.mediaPath} />;
+  const checkMessageMedia = (msg) => {
+    switch (msg.mediaType) {
+      case "image": return <ModalImageCors imageUrl={msg.mediaPath} />;
+      case "audio": return <audio controls src={msg.mediaPath} />;
+      case "video": return <video width="250" controls src={msg.mediaPath} />;
       default:
         return (
-          <Button startIcon={<GetApp />} href={message.mediaPath} target="_blank" download>
-            Download
-          </Button>
+          <IconButton href={msg.mediaPath} download target="_blank">
+            <GetApp />
+          </IconButton>
         );
     }
   };
 
   const handleSendMedia = async () => {
     setLoading(true);
-    const formData = new FormData();
-    medias.forEach((media) => {
-      formData.append("medias", media);
-      formData.append("body", media.name);
-    });
-    formData.append("fromMe", true);
     try {
+      const formData = new FormData();
+      medias.forEach((m) => {
+        formData.append("medias", m);
+        formData.append("body", m.name);
+      });
+      formData.append("fromMe", true);
       await api.post(`/chats/${chat.id}/messages`, formData);
       setMedias([]);
     } catch (err) {
@@ -175,14 +174,12 @@ export default function ChatMessages({
     setLoading(true);
     try {
       const [, blob] = await Mp3Recorder.stop().getMp3();
-      if (blob.size < 10000) throw new Error("Audio muito curto");
-
-      const formData = new FormData();
+      if (blob.size < 10000) throw new Error("Áudio muito curto");
       const filename = `audio-${Date.now()}.mp3`;
+      const formData = new FormData();
       formData.append("medias", blob, filename);
       formData.append("body", filename);
       formData.append("fromMe", true);
-
       await api.post(`/chats/${chat.id}/messages`, formData);
     } catch (err) {
       toastError(err);
@@ -199,32 +196,33 @@ export default function ChatMessages({
   };
 
   return (
-    <Paper className={classes.mainContainer}>
-      <div onScroll={handleScroll} className={classes.messageList}>
+    <Paper className={classes.container} elevation={1}>
+      <div onScroll={handleScroll} className={classes.messagesWrapper}>
         {messages.map((msg, i) => (
           <Box
             key={i}
             className={
               msg.senderId === user.id
-                ? `${classes.messageBox} ${classes.sent}`
-                : `${classes.messageBox} ${classes.received}`
+                ? `${classes.messageBubble} ${classes.sent}`
+                : `${classes.messageBubble} ${classes.received}`
             }
           >
-            <Typography variant="body2">{msg.sender.name}</Typography>
+            <Typography variant="body2" color="textSecondary">{msg.sender.name}</Typography>
             {msg.mediaPath && checkMessageMedia(msg)}
             <Typography variant="body1">{msg.message}</Typography>
-            <Typography variant="caption">{datetimeToClient(msg.createdAt)}</Typography>
+            <Typography variant="caption" color="textSecondary">{datetimeToClient(msg.createdAt)}</Typography>
           </Box>
         ))}
         <div ref={baseRef} />
       </div>
+
       <div className={classes.inputArea}>
         {recording ? (
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <>
             <IconButton onClick={handleCancelAudio}><HighlightOffIcon /></IconButton>
             <RecordingTimer />
             <IconButton onClick={handleUploadAudio}><CheckCircleOutlineIcon /></IconButton>
-          </div>
+          </>
         ) : medias.length > 0 ? (
           <div className={classes.mediaPreview}>
             <IconButton onClick={() => setMedias([])}><CancelIcon /></IconButton>
@@ -232,10 +230,11 @@ export default function ChatMessages({
             <IconButton onClick={handleSendMedia}><SendIcon /></IconButton>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <>
             <FileInput handleChangeMedias={handleChangeMedias} disableOption={loading} />
-            <Input
-              placeholder="Mensagem"
+            <InputBase
+              className={classes.input}
+              placeholder="Digite sua mensagem"
               value={contentMessage}
               onChange={(e) => setContentMessage(e.target.value)}
               onKeyPress={(e) => {
@@ -244,7 +243,6 @@ export default function ChatMessages({
                   setContentMessage("");
                 }
               }}
-              className={classes.input}
             />
             {contentMessage ? (
               <IconButton onClick={() => {
@@ -254,7 +252,7 @@ export default function ChatMessages({
             ) : (
               <IconButton onClick={handleStartRecording}><MicIcon /></IconButton>
             )}
-          </div>
+          </>
         )}
       </div>
     </Paper>
@@ -270,7 +268,7 @@ const FileInput = ({ handleChangeMedias, disableOption }) => {
         type="file"
         id="upload-button"
         disabled={disableOption}
-        className={classes.uploadInput}
+        className={classes.fileInput}
         onChange={handleChangeMedias}
       />
       <label htmlFor="upload-button">
