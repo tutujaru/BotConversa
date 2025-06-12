@@ -58,25 +58,63 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
   },
   boxLeft: {
-    padding: "10px 10px 5px",
-    margin: "10px",
+    padding: "8px 12px 6px 9px",
+    margin: "6px 8px 2px 8px",
     position: "relative",
-    backgroundColor: "blue",
-    maxWidth: 300,
-    borderRadius: 10,
-    borderBottomLeftRadius: 0,
-    border: "1px solid rgba(0, 0, 0, 0.12)",
+    backgroundColor: "#ffffff",
+    color: "#111b21",
+    maxWidth: "70%",
+    borderRadius: "7.5px",
+    borderTopLeftRadius: "0",
+    boxShadow: "0 1px 0.5px rgba(11, 20, 26, 0.13)",
+    "&:before": {
+      content: '""',
+      position: "absolute",
+      left: "-8px",
+      top: "0",
+      width: "0",
+      height: "0",
+      borderStyle: "solid",
+      borderWidth: "0 8px 8px 0",
+      borderColor: "transparent #ffffff transparent transparent",
+    }
   },
   boxRight: {
-    padding: "10px 10px 5px",
-    margin: "10px 10px 10px auto",
+    padding: "8px 12px 6px 9px",
+    margin: "6px 8px 2px 8px",
     position: "relative",
-    backgroundColor: "green", //DARK MODE PLW DESIGN//
-    textAlign: "right",
-    maxWidth: 300,
-    borderRadius: 10,
-    borderBottomRightRadius: 0,
-    border: "1px solid rgba(0, 0, 0, 0.12)",
+    backgroundColor: "#25d366",
+    color: "#111b21",
+    textAlign: "left",
+    maxWidth: "70%",
+    borderRadius: "10.5px",
+    borderTopRightRadius: "0",
+    boxShadow: "0 1px 0.5px rgba(11, 20, 26, 0.13)",
+    "&:before": {
+      content: '""',
+      position: "absolute",
+      right: "-8px",
+      top: "0",
+      width: "0",
+      height: "0",
+      borderStyle: "solid",
+      borderWidth: "0 0 8px 8px",
+      borderColor: "transparent transparent transparent #d9fdd3",
+    }
+  },
+
+  // Estilo para mensagens consecutivas do mesmo remetente
+  consecutiveBoxLeft: {
+    marginTop: "1px",
+    "&:before": {
+      display: "none"
+    }
+  },
+  consecutiveBoxRight: {
+    marginTop: "1px",
+    "&:before": {
+      display: "none"
+    }
   },
 
   sendMessageIcons: {
