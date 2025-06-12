@@ -8,7 +8,7 @@ on:
       - 'dev'
       - 'test-**'
     tags:
-      - 'v*.*.*'
+      - 'v3.0.1'
 env:
   REGISTRY: ghcr.io
   IMAGE_BACKEND: tutujaru/botconversa-backend
