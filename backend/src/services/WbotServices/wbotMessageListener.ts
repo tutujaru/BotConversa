@@ -30,7 +30,6 @@ import OldMessage from "../../models/OldMessage";
 import { getIO } from "../../libs/socket";
 import CreateMessageService from "../MessageServices/CreateMessageService";
 import { logger } from "../../utils/logger";
-import CreateOrUpdateContactService from "../ContactServices/CreateOrUpdateContactService";
 import FindOrCreateTicketService from "../TicketServices/FindOrCreateTicketService";
 import ShowWhatsAppService from "../WhatsappService/ShowWhatsAppService";
 import UpdateTicketService, {
@@ -63,6 +62,7 @@ import { transcriber } from "../../helpers/transcriber";
 import { parseToMilliseconds } from "../../helpers/parseToMilliseconds";
 import { randomValue } from "../../helpers/randomValue";
 import { getJidOf } from "./getJidOf";
+import { verifyContact } from "./verifyContact";
 
 export interface ImessageUpsert {
   messages: proto.IWebMessageInfo[];
@@ -78,7 +78,6 @@ const writeFileAsync = promisify(writeFile);
 
 const wbotMutex = new Mutex();
 const ackMutex = new Mutex();
-const lidUpdateMutex = new Mutex();
 
 const groupContactCache = new SimpleObjectCache(1000 * 30, logger);
 const outOfHoursCache = new SimpleObjectCache(1000 * 60 * 5, logger);
@@ -526,79 +525,6 @@ const downloadMedia = async (
     filename
   };
   return media;
-};
-
-const verifyContact = async (
-  msgContact: IMe,
-  wbot: Session,
-  companyId: number
-): Promise<Contact> => {
-  let profilePicUrl: string;
-  try {
-    profilePicUrl = await wbot.profilePictureUrl(msgContact.id);
-  } catch (e) {
-    Sentry.captureException(e);
-    profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
-  }
-
-  const isLid = msgContact.id.includes("@lid");
-  const isGroup = msgContact.id.includes("@g.us");
-
-  const number = isLid
-    ? msgContact.id
-    : msgContact.id.substring(0, msgContact.id.indexOf("@"));
-
-  const contactData = {
-    name: msgContact?.name || msgContact.id.replace(/\D/g, ""),
-    number,
-    profilePicUrl,
-    isGroup: msgContact.id.includes("g.us"),
-    companyId
-  };
-
-  return lidUpdateMutex.runExclusive(async () => {
-    const foundContact = await Contact.findOne({
-      where: {
-        companyId,
-        number
-      }
-    });
-    if (!isLid && !isGroup && !foundContact) {
-      const [ow] = await wbot.onWhatsApp(msgContact.id);
-      if (!ow?.exists) {
-        throw new Error("ERR_WAPP_CONTACT_NOT_FOUND");
-      }
-      const { lid } = ow;
-
-      if (lid) {
-        const lidContact = await Contact.findOne({
-          where: {
-            companyId,
-            number: lid
-          },
-          include: ["tags", "extraInfo"]
-        });
-
-        if (lidContact) {
-          lidContact.update(contactData);
-          lidContact.reload();
-
-          const io = getIO();
-          io.to(`company-${companyId}-mainchannel`).emit(
-            `company-${companyId}-contact`,
-            {
-              action: "update",
-              contact: lidContact
-            }
-          );
-
-          return lidContact;
-        }
-      }
-    }
-
-    return CreateOrUpdateContactService(contactData);
-  });
 };
 
 const verifyQuotedMessage = async (
