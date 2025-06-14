@@ -1,174 +1,138 @@
 [![en](https://img.shields.io/badge/lang-en-green.svg)](README.md)
 [![pt-br](https://img.shields.io/badge/lang-pt--br-red.svg)](README.pt.md)
 
-# About the Project
+# Sobre o Projeto
 
-Ticketz is a communicator with CRM and helpdesk features that utilizes WhatsApp as a means of communication with clients.
+Ticketz é um comunicador com recursos de CRM e helpdesk que utiliza o WhatsApp como meio de comunicação com clientes.
 
-## Original Authorship
+## Autoria Original
 
-This project was initiated in [an Open Source project](https://github.com/canove/whaticket-community), published by the developer [Cassio Santos](https://github.com/canove) under the permissive MIT license. It later received various improvements by unidentified authors and was commercially distributed directly between developers and users with the provision of source code. According to information from [this video, it was leaked and publicly released at some point](https://www.youtube.com/watch?v=SX_cGD5RLkQ).
+Este projeto foi iniciado em [um projeto Open Source](https://github.com/canove/whaticket-community), publicado pelo desenvolvedor [Cassio Santos](https://github.com/canove) sob a permissiva licença MIT. Posteriormente recebeu diversas melhorias de autores não identificados e foi distribuído comercialmente diretamente entre desenvolvedores e usuários com fornecimento do código-fonte. Segundo informações [deste vídeo, foi vazado e publicado publicamente em algum momento](https://www.youtube.com/watch?v=SX_cGD5RLkQ).
 
-After some research, it was further identified that the first SaaS version of Whaticket was created by the developer [Wender Teixeira](https://github.com/w3nder), including a version of [Whaticket Single](https://github.com/unkbot/whaticket-free) that uses the Baileys library for WhatsApp access.
+Após alguma pesquisa, identificou-se ainda que a primeira versão SaaS do Whaticket foi criada pelo desenvolvedor [Wender Teixeira](https://github.com/w3nder), incluindo uma versão [Whaticket Single](https://github.com/unkbot/whaticket-free) que usa a biblioteca Baileys para acesso ao WhatsApp.
 
-It is practically impossible to identify and credit the authors of the improvements. [The code published by the Vem Fazer channel](https://github.com/vemfazer/whaticket-versao-03-12-canal-vem-fazer) does not mention any license; therefore, I am assuming that all authors are comfortable with keeping these changes under the same license as the original project (MIT).
+É praticamente impossível identificar e creditar os autores das melhorias. [O código publicado pelo canal Vem Fazer](https://github.com/vemfazer/whaticket-versao-03-12-canal-vem-fazer) não menciona nenhuma licença; portanto, estou assumindo que todos os autores concordam em manter essas alterações sob a mesma licença do projeto original (MIT).
 
-## Relicensing
+## Relicenciamento
 
-As I am making these changes and providing them at no cost, I want them to be available to everyone. Therefore, I am choosing to relicense under the AGPL, which requires that every user who has access to the system can obtain the source code.
+Como estou realizando essas alterações e disponibilizando-as gratuitamente, desejo que elas estejam disponíveis para todos. Por isso, escolho relicenciar sob a AGPL, que exige que todo usuário que tenha acesso ao sistema possa obter o código-fonte.
 
-Therefore, if you directly utilize this version, it is **very important to keep the link on the "About Ticketz" screen, which provides access to the repository**. If you wish, you can move the link to the source code elsewhere, but it must be easily accessible to any system user.
+Portanto, se você utilizar diretamente esta versão, é **muito importante manter o link na tela "Sobre o Ticketz", que dá acesso ao repositório**. Se desejar, você pode mover o link para o código-fonte para outro local, mas ele deve ser facilmente acessível a qualquer usuário do sistema.
 
-If you make changes to the code, you must change the link to a repository or another way to obtain the code for your changes.
+Se você fizer alterações no código, deve alterar o link para um repositório ou outra forma de obter o código das suas alterações.
 
-If you wish to use parts of the code to fix any code **for your own use**, feel free to do so and you don't need to worry about the AGPL license. However, if you want to use any part added in this project in a system that you commercialize, you must either provide the code of your entire system to its users, or you must contact the author of the code to license it under different criteria.
+Se desejar usar partes do código para corrigir qualquer problema **para uso próprio**, fique à vontade e não precisa se preocupar com a licença AGPL. Entretanto, se quiser usar qualquer parte adicionada neste projeto em um sistema que você comercializa, deverá ou fornecer o código de todo o seu sistema para seus usuários, ou deverá entrar em contato com o autor do código para licenciá-lo sob critérios diferentes.
 
-## Objective
+## Objetivo
 
-The objective of this project is to improve and keep open updates about the published Whaticket SaaS. Mainly focused on application quality and ease of installation and use.
+O objetivo deste projeto é melhorar e manter abertas atualizações sobre o Whaticket SaaS publicado. Principalmente focado na qualidade da aplicação e facilidade de instalação e uso.
 
-The improvements developed by me will be placed here, and depending on the situation, I can transpose, always crediting, codes and improvements published in other projects also derived from Whaticket Community or Whaticket SaaS.
+As melhorias desenvolvidas por mim serão colocadas aqui e, dependendo da situação, posso transpor, sempre creditando, códigos e melhorias publicadas em outros projetos também derivados do Whaticket Community ou Whaticket SaaS.
 
-## Contributing Back
+## Contribuindo de Volta
 
-Whenever possible, I intend to backport some adjustments made here to the original projects.
+Sempre que possível, pretendo retornar alguns ajustes feitos aqui para os projetos originais.
 
-Very Quick Start on a public Server
------------------------------------
+Início Muito Rápido em um Servidor Público
+-------------------------------------------
 
-There are Docker images provided from the project, so you can get **ticketz** to work very easily on a public server (baremetal or VPS).
+Existem imagens Docker fornecidas pelo projeto, para que você possa fazer o **ticketz** funcionar com muita facilidade em um servidor público (baremetal ou VPS).
 
-### First setup
+### Primeira configuração
 
-Before starting you must complete this checklist:
+Antes de começar você deve completar esta lista de verificação:
 
-- [ ] Have a clean server running Ubuntu 20 or newer
-- [ ] Ports 80 and 443 available and not filtered by firewall
-- [ ] One hostname with configured DNS pointing to your server
+- [ ] Ter um servidor limpo rodando Ubuntu 20 ou mais recente
+- [ ] Portas 80 e 443 disponíveis e não filtradas por firewall
+- [ ] Um hostname com DNS configurado apontando para seu servidor
 
-After this, just log in to your server and issue the following command, replacing the hostnames you already configured and your email address:
+Após isso, basta fazer login no seu servidor e executar o seguinte comando, substituindo os hostnames que você já configurou e seu endereço de e-mail:
 
 ```bash
 curl -sSL get.ticke.tz | sudo bash -s app.example.com name@example.com
-```
+Após alguns minutos você terá o servidor rodando no hostname que definiu.
 
-After a few minutes you will have the server running at the hostname you defined.
+O login padrão será o endereço de e-mail fornecido no comando de instalação e a senha padrão é 123456, você deve alterá-la imediatamente.
 
-The default login will be the email address provided in the installation command and the default password is `123456`, you must change it right away.
+Atualização
+A atualização é tão fácil quanto a instalação, você só precisa fazer login no seu servidor usando o mesmo nome de usuário usado na instalação e executar o seguinte comando:
 
-### Upgrade
-
-The upgrade is just easy as the instalation, you just need to login to your server using the same username you used on the installation and issue the following command:
-
-```bash
+bash
 curl -sSL update.ticke.tz | sudo bash
-```
+Seu servidor será desligado e após alguns minutos estará rodando na versão mais recente lançada.
 
-Your server will go down and after some minutes it will be running in the latest released version.
+Inspecionar logs
+Como todos os elementos estão rodando em contêineres, os logs devem ser verificados através do comando docker.
 
-### Inspect logs
+Você deve fazer login no seu servidor usando o mesmo usuário que utilizou para a instalação.
 
-As all elements are running in containers the logs must be checked through the docker command.
+Primeiro você precisa mover o diretório atual para a pasta de instalação:
 
-You must login to your server using the same user you used for the installation.
-
-First you need to move the current directory to the installation folder:
-
-```bash
+bash
 cd ~/ticketz-docker-acme
-```
+Após isso você pode obter um relatório completo de logs com o seguinte comando:
 
-After this you can get a full log report with the following command:
-
-```bash
+bash
 docker compose logs -t
-```
+Se quiser "acompanhar" os logs em tempo real (tail follow), basta adicionar um parâmetro -f ao comando:
 
-If you want to "tail follow" the logs just add a `-f` parameter to that command:
-
-```bash
+bash
 docker compose logs -t -f
+Executando a partir do Código Fonte Usando Docker
 
-```
+Para instalação, você precisa ter o Docker Community Edition e o cliente Git instalados. É ideal encontrar a melhor forma de instalar esses recursos no seu sistema operacional preferido. O guia oficial de instalação do Docker pode ser encontrado aqui.
 
-Running from Source code Using Docker
--------------------------------------
+Em ambos os casos, é necessário clonar o repositório, então abra um terminal de comando:
 
-For installation, you need to have Docker Community Edition and the Git client installed. It is ideal to find the best way to install these resources on your preferred operating system. [The official Docker installation guide can be found here](https://docs.docker.com/engine/install/).
-
-In both cases, it is necessary to clone the repository, then open a command terminal:
-
-```bash
+bash
 git clone https://github.com/allgood/ticketz.git
 cd ticketz
-```
+Executando Localmente
+Por padrão, a configuração está definida para executar o sistema apenas no computador local. Para executá-lo em uma rede local, você precisa editar os arquivos .env-backend-local e .env-frontend-local e alterar os endereços de backend e frontend de localhost para o IP desejado, por exemplo, 192.168.0.10.
 
-## Running Locally
+Para executar o sistema, basta executar o seguinte comando:
 
-By default, the configuration is set to run the system only on the local computer. To run it on a local network, you need to edit the `.env-backend-local` and `.env-frontend-local` files and change the backend and frontend addresses from `localhost` to the desired IP, for example, `192.168.0.10`.
-
-To run the system, simply execute the following command:
-
-```bash
+bash
 docker compose -f docker-compose-local.yaml up -d
-```
+Na primeira execução, o sistema inicializará os bancos de dados e tabelas, e após alguns minutos, o Ticketz estará acessível pela porta 3000.
 
-On the first run, the system will initialize the databases and tables, and after a few minutes, Ticketz will be accessible through port 3000.
+O nome de usuário padrão é admin@ticketz.host, e a senha padrão é 123456.
 
-The default username is `admin@ticketz.host`, and the default password is 123456.
+O aplicativo será reiniciado automaticamente após cada reinicialização do servidor.
 
-The application will restart automatically after each server reboot.
+A execução pode ser interrompida com o comando:
 
-Execution can be stopped with the command:
-
-```bash
+bash
 docker compose -f docker-compose-local.yaml down
-```
+Executando e Servindo na Internet
+Tendo um servidor acessível via internet, é necessário ajustar dois nomes DNS de sua escolha, um para o backend e outro para o frontend, e também um endereço de e-mail para registro do certificado, por exemplo:
 
-## Running and Serving on the Internet
+backend: api.ticketz.example.com
 
-Having a server accessible via the internet, it is necessary to adjust two DNS names of your choice, one for the backend and another for the frontend, and also an email address for certificate registration, for example:
+frontend: ticketz.example.com
 
-* **backend:** api.ticketz.example.com
-* **frontend:** ticketz.example.com
-* **email:** ticketz@example.com
+email: ticketz@example.com
 
-You need to edit the `.env-backend-acme` and `.env-frontend-acme` files, defining these values in them.
+Você precisa editar os arquivos .env-backend-acme e .env-frontend-acme, definindo esses valores neles.
 
-If you want to use reCAPTCHA in the company signup, you also need to insert the secret and site keys in the backend and frontend files, respectively.
+Se quiser usar reCAPTCHA no cadastro de empresas, você também precisa inserir as chaves secretas e do site nos arquivos de backend e frontend, respectivamente.
 
-This guide assumes that the terminal is open and logged in with a regular user who has permission to use the `sudo` command to execute commands as root.
+Este guia pressupõe que o terminal está aberto e logado com um usuário normal que tem permissão para usar o comando sudo para executar comandos como root.
 
-Being in the project's root folder, execute the following command to start the service:
+Estando na pasta raiz do projeto, execute o seguinte comando para iniciar o serviço:
 
-```bash
+bash
 sudo docker compose -f docker-compose-acme.yaml up -d
-```
+Na primeira execução, o Docker compilará o código e criará os contêineres, e então o Ticketz inicializará os bancos de dados e tabelas. Esta operação pode levar bastante tempo, após o qual o Ticketz estará acessível no endereço de frontend fornecido.
 
-On the first run, Docker will compile the code and create the containers, and then Ticketz will initialize the databases and tables. This operation can take quite some time, after which Ticketz will be accessible at the provided frontend address.
+O nome de usuário padrão é o endereço de e-mail fornecido no arquivo .env-backend-acme e a senha padrão é 123456.
 
-The default username is the email address provided on the `.env-backend-acme` file and the default password is 123456.
+O aplicativo será reiniciado automaticamente após cada reinicialização do servidor.
 
-The application will restart automatically after each server reboot.
+Para encerrar o serviço, use o seguinte comando:
 
-To terminate the service, use the following command:
-
-```bash
+bash
 sudo docker compose -f docker-compose-acme.yaml down
-```
+Aviso Importante
 
-Important Notice
-----------------
-
-This project is not affiliated with Meta, WhatsApp, or any other company. The use of the provided code is the sole responsibility of the users and does not imply any liability for the author or project collaborators.
-
-Made Your Life Easier?
-----------------------
-
-If this project has helped you with a complex task, consider making a donation to the author via PayPal or Brazilian PIX below.
-
-[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=X6XHVCPMRQEL4)
-
-![image](https://github.com/ticketz-oss/ticketz/assets/6070736/8e85b263-73ca-4fb4-9bdc-03fff356b6ff)
-
-PIX Key: 0699c69d-0951-4686-a5b7-c6cd21aa7e15
+Este projeto não é afiliado à Meta, WhatsApp ou qualquer outra empresa. O uso do código fornecido é de responsabilidade exclusiva dos usuários e não implica qualquer responsabilidade para o autor ou colaboradores do projeto.
