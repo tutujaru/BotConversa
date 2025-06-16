@@ -1,7 +1,8 @@
 {
+  {
   "name": "ticketz-backend",
-  "version": "1.0.0",
-  "description": "",
+  "version": "3.0.8",
+  "description": "CRM - RO",
   "main": "index.js",
   "scripts": {
     "build": "tsc --sourceMap false",
