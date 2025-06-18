@@ -21,6 +21,7 @@ import CodeRoundedIcon from "@material-ui/icons/CodeRounded";
 import EventIcon from "@material-ui/icons/Event";
 import InfoIcon from "@material-ui/icons/Info";
 import DarkMode from "../components/DarkMode";
+import AccessTimeIcon from "@material-ui/icons/AccessTime";
 
 import LocalOfferIcon from "@material-ui/icons/LocalOffer";
 import EventAvailableIcon from "@material-ui/icons/EventAvailable";
@@ -54,8 +55,30 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "-15px",
     marginBottom: "-10px",
   },
+  serverTimeContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.spacing(1),
+    backgroundColor: theme.palette.background.paper,
+    borderRadius: 4,
+    margin: theme.spacing(1),
+    boxShadow: theme.shadows[1],
+  },
+  timeIcon: {
+    marginRight: theme.spacing(1),
+    color: theme.palette.text.secondary,
+  },
+  serverTimeText: {
+    fontWeight: "bold",
+    color: theme.palette.text.primary,
+  },
+  syncIndicator: {
+    marginLeft: theme.spacing(1),
+    fontSize: "0.75rem",
+    color: theme.palette.success.main,
+  },
 }));
-
 
 function ListItemLink(props) {
   const { icon, primary, to, className } = props;
@@ -136,13 +159,12 @@ const reducer = (state, action) => {
 
 const MainListItems = (props) => {
   const classes = useStyles();
-  const { drawerClose, drawerOpen} = props;
+  const { drawerClose, drawerOpen } = props;
   const { whatsApps } = useContext(WhatsAppsContext);
-  const { user ,handleLogout} = useContext(AuthContext);
+  const { user, handleLogout } = useContext(AuthContext);
   const [connectionWarning, setConnectionWarning] = useState(false);
   const [openCampaignSubmenu, setOpenCampaignSubmenu] = useState(false);
   const [openKanbanSubmenu, setOpenKanbanSubmenu] = useState(false);
-
   const [showCampaigns, setShowCampaigns] = useState(false);
   const history = useHistory();
   const [invisible, setInvisible] = useState(true);
@@ -150,8 +172,53 @@ const MainListItems = (props) => {
   const [searchParam] = useState("");
   const [chats, dispatch] = useReducer(reducer, []);
   const [version, setVersion] = useState("v N/A");
+  const [serverTime, setServerTime] = useState(new Date());
+  const [timeOffset, setTimeOffset] = useState(0);
+  const [lastSync, setLastSync] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const socketManager = useContext(SocketContext);
+
+  // Fetch server time and calculate offset
+  const syncServerTime = async () => {
+    try {
+      setIsSyncing(true);
+      const start = Date.now();
+      const response = await api.get("/server/time");
+      const end = Date.now();
+      const roundtrip = end - start;
+      
+      const serverTime = new Date(response.data.time);
+      const estimatedServerTime = new Date(serverTime.getTime() + (roundtrip / 2));
+      const clientTime = new Date();
+      
+      setTimeOffset(estimatedServerTime - clientTime);
+      setServerTime(estimatedServerTime);
+      setLastSync(new Date());
+    } catch (err) {
+      toastError(err);
+      // Fallback to client time if server request fails
+      setTimeOffset(0);
+      setServerTime(new Date());
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Initial sync and periodic sync every hour
+  useEffect(() => {
+    syncServerTime();
+    const syncInterval = setInterval(syncServerTime, 3600000); // Sync every hour
+    return () => clearInterval(syncInterval);
+  }, []);
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setServerTime(new Date(Date.now() + timeOffset));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeOffset]);
 
   useEffect(() => {
     dispatch({ type: "RESET" });
@@ -163,7 +230,6 @@ const MainListItems = (props) => {
       fetchChats();
     }, 500);
     return () => clearTimeout(delayDebounceFn);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
@@ -181,7 +247,7 @@ const MainListItems = (props) => {
 
     socket.on(`company-${companyId}-chat`, onCompanyChatMainListItems);
     return () => {
-	    socket.disconnect();
+      socket.disconnect();
     };
   }, [socketManager]);
 
@@ -243,108 +309,141 @@ const MainListItems = (props) => {
   };
 
   const handleClickLogout = () => {
-    //handleCloseMenu();
     handleLogout();
+  };
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'America/Sao_Paulo'
+    });
+  };
+
+  const formatLastSync = (date) => {
+    if (!date) return "Nunca sincronizado";
+    const diff = Math.floor((new Date() - date) / 1000);
+    if (diff < 60) return `${diff} segundos atrás`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} minutos atrás`;
+    return `${Math.floor(diff / 3600)} horas atrás`;
   };
 
   return (
     <div onClick={drawerClose}>
+      {/* Server Time Display */}
+      <div className={classes.serverTimeContainer}>
+        <AccessTimeIcon className={classes.timeIcon} />
+        <Typography variant="body2" className={classes.serverTimeText}>
+          {formatTime(serverTime)}
+        </Typography>
+        {!isSyncing && lastSync && (
+          <Typography variant="caption" className={classes.syncIndicator}>
+            {formatLastSync(lastSync)}
+          </Typography>
+        )}
+        {isSyncing && (
+          <Typography variant="caption" className={classes.syncIndicator}>
+            Sincronizando...
+          </Typography>
+        )}
+      </div>
+
       <Can
         role={user.profile}
         perform={"drawer-service-items:view"}
         style={{
           overflowY: "scroll",
         }}
-        no={()=>(
-        <>
-          <ListSubheader 
-          hidden={!drawerOpen}
-        style={{
-          position:"relative",
-          fontSize: "17px",
-          textAlign: "left",
-          paddingLeft: 20
-        }}   
-        inset
-        color="inherit">
-              {i18n.t("mainDrawer.listItems.service")}
-          </ListSubheader>
+        no={() => (
           <>
-            
-            <ListItemLink
-              to="/tickets"
-              primary={i18n.t("mainDrawer.listItems.tickets")}
-              icon={<WhatsAppIcon />}
-            />
-      <ListItemLink
-        to="/todolist"
-        primary={i18n.t("Tarefas")}
-        icon={<BorderColorIcon />}
-      />
-            <ListItemLink
-              to="/quick-messages"
-              primary={i18n.t("mainDrawer.listItems.quickMessages")}
-              icon={<FlashOnIcon />}
-            />
-            <ListItemLink
-              to="/contacts"
-              primary={i18n.t("mainDrawer.listItems.contacts")}
-              icon={<ContactPhoneOutlinedIcon />}
-            />
-            <ListItemLink
-              to="/schedules"
-              primary={i18n.t("mainDrawer.listItems.schedules")}
-              icon={<EventIcon />}
-            />
-            <ListItemLink
-              to="/tags"
-              primary={i18n.t("mainDrawer.listItems.tags")}
-              icon={<LocalOfferIcon />}
-            />
-            <ListItemLink
-              to="/chats"
-              primary={i18n.t("mainDrawer.listItems.chats")}
-              icon={
-                <Badge color="secondary" variant="dot" invisible={invisible}>
-                  <ForumIcon />
-                </Badge>
-              }
-            />
-            <ListItemLink
-              to="/helps"
-              primary={i18n.t("mainDrawer.listItems.helps")}
-              icon={<HelpOutlineIcon />}
-            />
+            <ListSubheader
+              hidden={!drawerOpen}
+              style={{
+                position: "relative",
+                fontSize: "17px",
+                textAlign: "left",
+                paddingLeft: 20
+              }}
+              inset
+              color="inherit">
+              {i18n.t("mainDrawer.listItems.service")}
+            </ListSubheader>
+            <>
+              <ListItemLink
+                to="/tickets"
+                primary={i18n.t("mainDrawer.listItems.tickets")}
+                icon={<WhatsAppIcon />}
+              />
+              <ListItemLink
+                to="/todolist"
+                primary={i18n.t("Tarefas")}
+                icon={<BorderColorIcon />}
+              />
+              <ListItemLink
+                to="/quick-messages"
+                primary={i18n.t("mainDrawer.listItems.quickMessages")}
+                icon={<FlashOnIcon />}
+              />
+              <ListItemLink
+                to="/contacts"
+                primary={i18n.t("mainDrawer.listItems.contacts")}
+                icon={<ContactPhoneOutlinedIcon />}
+              />
+              <ListItemLink
+                to="/schedules"
+                primary={i18n.t("mainDrawer.listItems.schedules")}
+                icon={<EventIcon />}
+              />
+              <ListItemLink
+                to="/tags"
+                primary={i18n.t("mainDrawer.listItems.tags")}
+                icon={<LocalOfferIcon />}
+              />
+              <ListItemLink
+                to="/chats"
+                primary={i18n.t("mainDrawer.listItems.chats")}
+                icon={
+                  <Badge color="secondary" variant="dot" invisible={invisible}>
+                    <ForumIcon />
+                  </Badge>
+                }
+              />
+              <ListItemLink
+                to="/helps"
+                primary={i18n.t("mainDrawer.listItems.helps")}
+                icon={<HelpOutlineIcon />}
+              />
+            </>
           </>
-        </>
         )}
       />
 
       <Can
         role={user.profile}
         perform={"drawer-admin-items:view"}
-        yes={()=>(
+        yes={() => (
           <>
-            <Divider/>
-            <ListSubheader 
-            hidden={!drawerOpen}
-            style={{
-              position:"relative",
-              fontSize: "17px",
-              textAlign: "left",
-              paddingLeft: 20
-            }} 
-            inset
-            color="inherit">
+            <Divider />
+            <ListSubheader
+              hidden={!drawerOpen}
+              style={{
+                position: "relative",
+                fontSize: "17px",
+                textAlign: "left",
+                paddingLeft: 20
+              }}
+              inset
+              color="inherit">
               {i18n.t("mainDrawer.listItems.management")}
             </ListSubheader>
             <ListItemLink
-            small
-            to="/"
-            primary="Dashboard"
-            icon={<DashboardOutlinedIcon />}
+              small
+              to="/"
+              primary="Dashboard"
+              icon={<DashboardOutlinedIcon />}
             />
-        </>
+          </>
         )}
       />
       <Can
@@ -353,19 +452,19 @@ const MainListItems = (props) => {
         yes={() => (
           <>
             <Divider />
-            <ListSubheader 
-            hidden={!drawerOpen}
-            style={{
-              position:"relative",
-              fontSize: "17px",
-              textAlign: "left",
-              paddingLeft: 20
-            }} 
-            inset
-            color="inherit">
+            <ListSubheader
+              hidden={!drawerOpen}
+              style={{
+                position: "relative",
+                fontSize: "17px",
+                textAlign: "left",
+                paddingLeft: 20
+              }}
+              inset
+              color="inherit">
               {i18n.t("mainDrawer.listItems.administration")}
             </ListSubheader>
-            
+
             {showCampaigns && (
               <>
                 <ListItem
@@ -450,31 +549,31 @@ const MainListItems = (props) => {
               primary={i18n.t("mainDrawer.listItems.messagesAPI")}
               icon={<CodeRoundedIcon />}
             />
-             <ListItemLink
-                to="/financeiro"
-                primary={i18n.t("mainDrawer.listItems.financeiro")}
-                icon={<LocalAtmIcon />}
-              />
+            <ListItemLink
+              to="/financeiro"
+              primary={i18n.t("mainDrawer.listItems.financeiro")}
+              icon={<LocalAtmIcon />}
+            />
 
             <ListItemLink
               to="/settings"
               primary={i18n.t("mainDrawer.listItems.settings")}
               icon={<SettingsOutlinedIcon />}
             />
-            
-               <Divider />
-      <Typography style={{ 
-        fontSize: "12px", 
-        padding: "10px", 
-        textAlign: "right", 
-        fontWeight: "bold" 
-      }}>
-        Versão:3.0.8 - CRM - RO © 2025
-      </Typography>
-    </>
-  )}
-/>
-<Divider />
+
+            <Divider />
+            <Typography style={{
+              fontSize: "12px",
+              padding: "10px",
+              textAlign: "right",
+              fontWeight: "bold"
+            }}>
+              Versão:3.0.9 - CRM - RO © 2025
+            </Typography>
+          </>
+        )}
+      />
+      <Divider />
     </div>
   );
 };
