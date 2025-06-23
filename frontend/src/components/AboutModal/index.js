@@ -126,15 +126,15 @@ const AboutModal = ({ open, onClose }) => {
             <Typography><Link target="_blank" href="https://github.com/vemfazer">{i18n.t("about.aboutvemfazersite")}</Link></Typography>
             <Typography variant="h4">{i18n.t("about.licenseheading")}</Typography>
             <Typography variant="body1">{i18n.t("about.licensedetail")}</Typography>
-            <Typography><Link target="_blank" href="https://github.com/ticketz-oss/ticketz/blob/main/LICENSE.md">{i18n.t("about.licensefulltext")}</Link></Typography>
-            <Typography><Link target="_blank" href="https://github.com/ticketz-oss/ticketz">{i18n.t("about.licensesourcecode")}</Link></Typography>
+            <Typography><Link target="_blank" href="https://github.com/tutujaru/botconversa/blob/main/LICENSE.md">{i18n.t("about.licensefulltext")}</Link></Typography>
+            <Typography><Link target="_blank" href="https://github.com/tutujaru/botconversa">{i18n.t("about.licensesourcecode")}</Link></Typography>
           </>
           :
           <>
             <div>
               <img className={classes.logoImg} />
             </div>
-            <Typography className={classes.textCenter} ><Link target="_blank" href="https://ticke.tz">{i18n.t("about.copyright")}</Link></Typography>
+            <Typography className={classes.textCenter} ><Link target="_blank" href="https://github.com/tutujaru">{i18n.t("about.copyright")}</Link></Typography>
           </>
         }
 				</DialogContent>
