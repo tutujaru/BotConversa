@@ -1,7 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-
 import { useParams, useHistory } from "react-router-dom";
-
 import {
   Button,
   Dialog,
@@ -14,6 +12,7 @@ import {
   Tab,
   Tabs,
   TextField,
+  useTheme,
 } from "@material-ui/core";
 import ChatList from "./ChatList";
 import ChatMessages from "./ChatMessages";
@@ -25,42 +24,144 @@ import { has, isObject } from "lodash";
 
 import { AuthContext } from "../../context/Auth/AuthContext";
 import withWidth, { isWidthUp } from "@material-ui/core/withWidth";
-import whatsBackground from "../../assets/wa-background.png"
+import whatsBackground from "../../assets/wa-background.png";
 import whatsBackgroundDark from "../../assets/wa-background-dark.png";
 
 import { i18n } from "../../translate/i18n";
 import Title from "../../components/Title";
+
 const useStyles = makeStyles((theme) => ({
   mainContainer: {
     display: "flex",
     flexDirection: "column",
+    height: "100%",
+    borderRadius: 16,
+    overflow: "hidden",
+    boxShadow: theme.shadows[5],
+    background: theme.palette.background.default,
     position: "relative",
-    flex: 1,
+    "&:before": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundImage:
+        theme.palette.type === "light"
+          ? `linear-gradient(rgba(255,255,255,0.95), rgba(245,245,245,0.97)), url(${whatsBackground})`
+          : `linear-gradient(rgba(18,18,18,0.95), rgba(30,30,30,0.98)), url(${whatsBackgroundDark})`,
+      backgroundPosition: "center",
+      backgroundSize: "cover",
+      backgroundRepeat: "no-repeat",
+      zIndex: 0,
+    },
+  },
+  contentWrapper: {
+    position: "relative",
+    zIndex: 1,
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+  },
+  header: {
     padding: theme.spacing(2),
-    height: `calc(100% - 48px)`,
-    overflowY: "hidden",
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-    backgroundImage: theme.mode === 'light' ? `url(${whatsBackground})` : `url(${whatsBackgroundDark})`,
-		backgroundPosition: 'center', 
-		backgroundSize: 'cover', 
-		backgroundRepeat: 'no-repeat', 
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    background:
+      theme.palette.type === "light"
+        ? "linear-gradient(45deg, #f5f7fa 0%, #e4e8f0 100%)"
+        : "linear-gradient(45deg, #1a1a2e 0%, #16213e 100%)",
   },
   gridContainer: {
     flex: 1,
-    height: "100%",
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-    backgroundColor: "inherit",
+    minHeight: 0,
+    borderRadius: 12,
+    overflow: "hidden",
+    margin: theme.spacing(1),
   },
   gridItem: {
+    display: "flex",
+    flexDirection: "column",
     height: "100%",
+    transition: "all 0.3s ease",
   },
-  gridItemTab: {
-    height: "92%",
-    width: "100%",
+  chatListWrapper: {
+    height: "100%",
+    background: theme.palette.background.paper,
+    borderRadius: 12,
+    boxShadow: theme.shadows[2],
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
   },
-  btnContainer: {
-    textAlign: "right",
-    padding: 10,
+  newChatButton: {
+    margin: theme.spacing(2),
+    alignSelf: "flex-end",
+    background:
+      theme.palette.type === "light"
+        ? "linear-gradient(45deg, #2196F3 0%, #21CBF3 100%)"
+        : "linear-gradient(45deg, #BB86FC 0%, #3700B3 100%)",
+    color: "white",
+    fontWeight: 600,
+    borderRadius: 24,
+    padding: "8px 24px",
+    "&:hover": {
+      boxShadow: theme.shadows[4],
+      transform: "translateY(-2px)",
+    },
+  },
+  tabs: {
+    background: theme.palette.background.paper,
+    "& .MuiTabs-indicator": {
+      height: 4,
+      borderRadius: "2px 2px 0 0",
+      background:
+        theme.palette.type === "light"
+          ? "linear-gradient(45deg, #2196F3 0%, #21CBF3 100%)"
+          : "linear-gradient(45deg, #BB86FC 0%, #3700B3 100%)",
+    },
+    "& .MuiTab-root": {
+      textTransform: "none",
+      fontWeight: 600,
+      fontSize: "1rem",
+      minWidth: 120,
+    },
+    "& .Mui-selected": {
+      color: theme.palette.type === "light" ? "#2196F3" : "#BB86FC",
+    },
+  },
+  dialogPaper: {
+    borderRadius: 16,
+    background: theme.palette.background.paper,
+    backgroundImage:
+      theme.palette.type === "light"
+        ? "linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%)"
+        : "linear-gradient(to right, #232526 0%, #414345 100%)",
+  },
+  dialogTitle: {
+    background:
+      theme.palette.type === "light"
+        ? "linear-gradient(45deg, #f5f7fa 0%, #e4e8f0 100%)"
+        : "linear-gradient(45deg, #1a1a2e 0%, #16213e 100%)",
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    fontWeight: 700,
+  },
+  dialogButton: {
+    borderRadius: 12,
+    fontWeight: 600,
+    padding: "8px 20px",
+    margin: theme.spacing(1),
+    transition: "all 0.2s ease",
+    "&:hover": {
+      transform: "scale(1.03)",
+    },
+  },
+  primaryButton: {
+    background:
+      theme.palette.type === "light"
+        ? "linear-gradient(45deg, #2196F3 0%, #21CBF3 100%)"
+        : "linear-gradient(45deg, #BB86FC 0%, #3700B3 100%)",
+    color: "white",
   },
 }));
 
@@ -72,6 +173,7 @@ export function ChatModal({
   handleLoadNewChat,
   user,
 }) {
+  const classes = useStyles();
   const [users, setUsers] = useState([]);
   const [title, setTitle] = useState("");
 
@@ -114,16 +216,15 @@ export function ChatModal({
       }
       handleClose();
     } catch (err) {}
-  };  
+  };
 
   return (
     <Dialog
       open={open}
       onClose={handleClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
+      classes={{ paper: classes.dialogPaper }}
     >
-      <DialogTitle id="alert-dialog-title">Conversa</DialogTitle>
+      <DialogTitle className={classes.dialogTitle}>Conversa</DialogTitle>
       <DialogContent>
         <Grid spacing={2} container>
           <Grid xs={12} style={{ padding: 18 }} item>
@@ -135,6 +236,12 @@ export function ChatModal({
               variant="outlined"
               size="small"
               fullWidth
+              InputProps={{
+                style: {
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.8)",
+                },
+              }}
             />
           </Grid>
           <Grid xs={12} item>
@@ -147,10 +254,18 @@ export function ChatModal({
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button
+          onClick={handleClose}
+          color="primary"
+          className={`${classes.dialogButton}`}
+        >
           Fechar
         </Button>
-        <Button onClick={handleSave} color="primary" variant="contained">
+        <Button
+          onClick={handleSave}
+          className={`${classes.dialogButton} ${classes.primaryButton}`}
+          variant="contained"
+        >
           Salvar
         </Button>
       </DialogActions>
@@ -236,7 +351,7 @@ function Chat(props) {
         });
         setChats(changedChats);
       }
-    }
+    };
 
     const onChat = (data) => {
       if (data.action === "delete") {
@@ -248,47 +363,47 @@ function Chat(props) {
         setCurrentChat({});
         history.push("/chats");
       }
-    }
+    };
 
     const onCurrentChat = (data) => {
-        if (data.action === "new-message") {
-          setMessages((prev) => [...prev, data.newMessage]);
-          const changedChats = chats.map((chat) => {
-            if (chat.id === data.newMessage.chatId) {
-              return {
-                ...data.chat,
-              };
-            }
-            return chat;
-          });
-          setChats(changedChats);
-          scrollToBottomRef.current();
-        }
-
-        if (data.action === "update") {
-          const changedChats = chats.map((chat) => {
-            if (chat.id === data.chat.id) {
-              return {
-                ...data.chat,
-              };
-            }
-            return chat;
-          });
-          setChats(changedChats);
-          scrollToBottomRef.current();
-        }
+      if (data.action === "new-message") {
+        setMessages((prev) => [...prev, data.newMessage]);
+        const changedChats = chats.map((chat) => {
+          if (chat.id === data.newMessage.chatId) {
+            return {
+              ...data.chat,
+            };
+          }
+          return chat;
+        });
+        setChats(changedChats);
+        scrollToBottomRef.current();
       }
 
-    socket.on(`company-${companyId}-chat-user-${user.id}`, onChatUser); 
+      if (data.action === "update") {
+        const changedChats = chats.map((chat) => {
+          if (chat.id === data.chat.id) {
+            return {
+              ...data.chat,
+            };
+          }
+          return chat;
+        });
+        setChats(changedChats);
+        scrollToBottomRef.current();
+      }
+    };
+
+    socket.on(`company-${companyId}-chat-user-${user.id}`, onChatUser);
     socket.on(`company-${companyId}-chat`, onChat);
     if (isObject(currentChat) && has(currentChat, "id")) {
       socket.on(`company-${companyId}-chat-${currentChat.id}`, onCurrentChat);
     }
-        
+
     return () => {
       socket.disconnect();
     };
-    
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChat, socketManager]);
 
@@ -347,92 +462,98 @@ function Chat(props) {
 
   const renderGrid = () => {
     return (
-      <>
-      <Title>{i18n.t("internalChat.title")}</Title>
-      <Grid className={classes.gridContainer} container>
-        <Grid className={classes.gridItem} md={3} item>
-         
-            <div className={classes.btnContainer}>
+      <div className={classes.contentWrapper}>
+        <div className={classes.header}>
+          <Title>{i18n.t("internalChat.title")}</Title>
+        </div>
+        <Grid className={classes.gridContainer} container spacing={2}>
+          <Grid className={classes.gridItem} md={4} lg={3} item>
+            <div className={classes.chatListWrapper}>
               <Button
+                className={classes.newChatButton}
                 onClick={() => {
                   setDialogType("new");
                   setShowDialog(true);
                 }}
-                color="primary"
-                variant="contained"
               >
-                Nova
+                Nova Conversa
               </Button>
+              <ChatList
+                chats={chats}
+                pageInfo={chatsPageInfo}
+                loading={loading}
+                handleSelectChat={(chat) => selectChat(chat)}
+                handleDeleteChat={(chat) => deleteChat(chat)}
+                handleEditChat={() => {
+                  setDialogType("edit");
+                  setShowDialog(true);
+                }}
+              />
             </div>
-        
-          <ChatList
-            chats={chats}
-            pageInfo={chatsPageInfo}
-            loading={loading}
-            handleSelectChat={(chat) => selectChat(chat)}
-            handleDeleteChat={(chat) => deleteChat(chat)}
-            handleEditChat={() => {
-              setDialogType("edit");
-              setShowDialog(true);
-            }}
-          />
+          </Grid>
+          <Grid className={classes.gridItem} md={8} lg={9} item>
+            {isObject(currentChat) && has(currentChat, "id") && (
+              <div className={classes.chatListWrapper}>
+                <ChatMessages
+                  chat={currentChat}
+                  scrollToBottomRef={scrollToBottomRef}
+                  pageInfo={messagesPageInfo}
+                  messages={messages}
+                  loading={loading}
+                  handleSendMessage={sendMessage}
+                  handleLoadMore={loadMoreMessages}
+                />
+              </div>
+            )}
+          </Grid>
         </Grid>
-        <Grid className={classes.gridItem} md={9} item>
-          {isObject(currentChat) && has(currentChat, "id") && (
-            <ChatMessages
-              chat={currentChat}
-              scrollToBottomRef={scrollToBottomRef}
-              pageInfo={messagesPageInfo}
-              messages={messages}
-              loading={loading}
-              handleSendMessage={sendMessage}
-              handleLoadMore={loadMoreMessages}
-            />
-          )}
-        </Grid>
-      </Grid>
-      </>
+      </div>
     );
   };
 
   const renderTab = () => {
     return (
-      <Grid className={classes.gridContainer} container>
-        <Grid md={12} item>
-          <Tabs
-            value={tab}
-            indicatorColor="primary"
-            textColor="primary"
-            onChange={(e, v) => setTab(v)}
-            aria-label="disabled tabs example"
-          >
-            <Tab label="Chats" />
-            <Tab label="Mensagens" />
-          </Tabs>
-        </Grid>
+      <div className={classes.contentWrapper}>
+        <Tabs
+          value={tab}
+          className={classes.tabs}
+          onChange={(e, v) => setTab(v)}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="fullWidth"
+        >
+          <Tab label="Chats" />
+          <Tab label="Mensagens" />
+        </Tabs>
+
         {tab === 0 && (
-          <Grid className={classes.gridItemTab} md={12} item>
-            <div className={classes.btnContainer}>
-              <Button
-                onClick={() => setShowDialog(true)}
-                color="primary"
-                variant="contained"
-              >
-                Novo
-              </Button>
-            </div>
+          <div className={classes.chatListWrapper}>
+            <Button
+              className={classes.newChatButton}
+              onClick={() => {
+                setDialogType("new");
+                setShowDialog(true);
+              }}
+            >
+              Nova Conversa
+            </Button>
             <ChatList
               chats={chats}
               pageInfo={chatsPageInfo}
               loading={loading}
               handleSelectChat={(chat) => selectChat(chat)}
               handleDeleteChat={(chat) => deleteChat(chat)}
+              handleEditChat={() => {
+                setDialogType("edit");
+                setShowDialog(true);
+              }}
             />
-          </Grid>
+          </div>
         )}
+
         {tab === 1 && (
-          <Grid className={classes.gridItemTab} md={12} item>
-            {isObject(currentChat) && has(currentChat, "id") && (
+          <div className={classes.chatListWrapper}>
+            {isObject(currentChat) && has(currentChat, "id") ? (
               <ChatMessages
                 chat={currentChat}
                 scrollToBottomRef={scrollToBottomRef}
@@ -442,10 +563,22 @@ function Chat(props) {
                 handleSendMessage={sendMessage}
                 handleLoadMore={loadMoreMessages}
               />
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  color: "textSecondary",
+                }}
+              >
+                Selecione uma conversa para começar a enviar mensagens
+              </div>
             )}
-          </Grid>
+          </div>
         )}
-      </Grid>
+      </div>
     );
   };
 
