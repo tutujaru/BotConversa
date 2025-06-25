@@ -75,13 +75,6 @@ const AboutModal = ({ open, onClose }) => {
 				{ currentUser?.super ? 
           <>
             <Typography variant="body1">{i18n.t("about.aboutdetail")}</Typography>
-            <Typography><Link target="_blank" href="https://todobom.com">{i18n.t("about.aboutauthorsite")}</Link></Typography>
-            <Typography><Link target="_blank" href="https://github.com/canove/whaticket-community">{i18n.t("about.aboutwhaticketsite")}</Link></Typography>
-            <Typography><Link target="_blank" href="https://github.com/vemfazer">{i18n.t("about.aboutvemfazersite")}</Link></Typography>
-            <Typography variant="h4">{i18n.t("about.licenseheading")}</Typography>
-            <Typography variant="body1">{i18n.t("about.licensedetail")}</Typography>
-            <Typography><Link target="_blank" href="https://github.com/tutujaru/botconversa/blob/main/LICENSE.md">{i18n.t("about.licensefulltext")}</Link></Typography>
-            <Typography><Link target="_blank" href="https://github.com/tutujaru/botconversa">{i18n.t("about.licensesourcecode")}</Link></Typography>
           </>
           :
           <>
