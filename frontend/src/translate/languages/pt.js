@@ -707,13 +707,7 @@ const messages = {
         title: "Sobre o CRM - RO",
         abouttitle: "Origem e melhorias",
         aboutdetail: "O CRM - RO é Desemvolvido por Glecson Mendes ",
-        aboutauthorsite: "Site do autor",
-        aboutwhaticketsite: "Site do Whaticket Community no Github",
-        aboutvemfazersite: "Site do canal Vem Fazer no Github",
-        licenseheading: "Licença em Código Aberto",
-        licensedetail: "O CRM - RO está licenciado sob a GNU Affero General Public License versão 3, isso significa que qualquer usuário que tiver acesso a esta aplicação tem o direito de obter acesso ao código fonte. Mais informações nos links abaixo:",
-        licensefulltext: "Texto completo da licença",
-        licensesourcecode: "Código fonte do ticketz"
+        licensedetail: "O CRM - RO está licenciado sob a GNU Affero General Public License versão 3",
       },
       schedules: {
         title: "Agendamentos",
