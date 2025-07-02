@@ -11,11 +11,9 @@ import {
   Typography,
 } from "@material-ui/core";
 import SendIcon from "@material-ui/icons/Send";
-
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { useDate } from "../../hooks/useDate";
 import api from "../../services/api";
-
 import { green } from "@material-ui/core/colors";
 import AttachFileIcon from "@material-ui/icons/AttachFile";
 import CancelIcon from "@material-ui/icons/Cancel";
@@ -45,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
     overflowY: "auto",
     height: "100%",
     ...theme.scrollbarStyles,
-    backgroundColor: theme.palette.chatlist, //DARK MODE PLW DESIGN//
+    backgroundColor: theme.palette.chatlist,
   },
   inputArea: {
     position: "relative",
@@ -53,6 +51,9 @@ const useStyles = makeStyles((theme) => ({
   },
   input: {
     padding: "20px",
+    "& textarea": {
+      fontFamily: "inherit", // Ensures special characters display correctly
+    },
   },
   buttonSend: {
     margin: theme.spacing(1),
@@ -77,17 +78,18 @@ const useStyles = makeStyles((theme) => ({
       borderStyle: "solid",
       borderWidth: "0 8px 8px 0",
       borderColor: "transparent #ffffff transparent transparent",
-    }
+    },
+    fontFamily: "inherit", // Ensures special characters display correctly
   },
   boxRight: {
     padding: "8px 12px 6px 9px",
     margin: "6px 8px 2px 8px",
     position: "relative",
-    backgroundColor: "#25d366",
+    backgroundColor: "#d9fdd3",
     color: "#111b21",
     textAlign: "left",
     maxWidth: "70%",
-    borderRadius: "10.5px",
+    borderRadius: "7.5px",
     borderTopRightRadius: "0",
     boxShadow: "0 1px 0.5px rgba(11, 20, 26, 0.13)",
     "&:before": {
@@ -100,23 +102,21 @@ const useStyles = makeStyles((theme) => ({
       borderStyle: "solid",
       borderWidth: "0 0 8px 8px",
       borderColor: "transparent transparent transparent #d9fdd3",
-    }
+    },
+    fontFamily: "inherit", // Ensures special characters display correctly
   },
-
-  // Estilo para mensagens consecutivas do mesmo remetente
   consecutiveBoxLeft: {
     marginTop: "1px",
     "&:before": {
-      display: "none"
-    }
+      display: "none",
+    },
   },
   consecutiveBoxRight: {
     marginTop: "1px",
     "&:before": {
-      display: "none"
-    }
+      display: "none",
+    },
   },
-
   sendMessageIcons: {
     color: "grey",
   },
@@ -140,7 +140,6 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "#eee",
     borderTop: "1px solid rgba(0, 0, 0, 0.12)",
   },
-
   downloadMedia: {
     display: "flex",
     alignItems: "center",
@@ -157,28 +156,27 @@ const useStyles = makeStyles((theme) => ({
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
   },
-
   recorderWrapper: {
     display: "flex",
     alignItems: "center",
     alignContent: "middle",
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
-
   cancelAudioIcon: {
     color: "red",
   },
-
-
   audioLoading: {
     color: green[500],
     opacity: "70%",
   },
-
   sendAudioIcon: {
     color: "green",
   },
-
+  messageText: {
+    whiteSpace: "pre-wrap", // Preserves formatting and special characters
+    wordBreak: "break-word", // Ensures long words/characters break properly
+    fontFamily: "inherit", // Ensures consistent character display
+  },
 }));
 
 const Mp3Recorder = new MicRecorder({ bitRate: 128 });
@@ -203,7 +201,7 @@ export default function ChatMessages({
 
   const scrollToBottom = () => {
     if (baseRef.current) {
-      baseRef.current.scrollIntoView({});
+      baseRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -219,7 +217,9 @@ export default function ChatMessages({
     if (unreadMessages(chat) > 0) {
       try {
         api.post(`/chats/${chat.id}/read`, { userId: user.id });
-      } catch (err) { }
+      } catch (err) {
+        toastError(err);
+      }
     }
     scrollToBottomRef.current = scrollToBottom;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -234,29 +234,24 @@ export default function ChatMessages({
   };
 
   const handleChangeMedias = (e) => {
-
-
     if (!e.target.files) {
       return;
     }
-
     const selectedMedias = Array.from(e.target.files);
     setMedias(selectedMedias);
   };
 
   const checkMessageMedia = (message) => {
-
     if (message.mediaType === "image") {
       return <ModalImageCors imageUrl={message.mediaPath} />;
     }
     if (message.mediaType === "audio") {
       return (
         <audio controls>
-          <source src={message.mediaPath} type="audio/ogg"></source>
+          <source src={message.mediaPath} type="audio/mp3" />
         </audio>
       );
     }
-
     if (message.mediaType === "video") {
       return (
         <video
@@ -279,7 +274,6 @@ export default function ChatMessages({
               Download
             </Button>
           </div>
-          {/* <Divider /> */}
         </>
       );
     }
@@ -297,9 +291,12 @@ export default function ChatMessages({
     });
 
     try {
-      await api.post(`/chats/${chat.id}/messages`, formData);
+      await api.post(`/chats/${chat.id}/messages`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data; charset=UTF-8",
+        },
+      });
     } catch (err) {
-      console.log(err);
       toastError(err);
     }
 
@@ -338,7 +335,11 @@ export default function ChatMessages({
       formData.append("body", filename);
       formData.append("fromMe", true);
 
-      await api.post(`/chats/${chat.id}/messages`, formData);
+      await api.post(`/chats/${chat.id}/messages`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data; charset=UTF-8",
+        },
+      });
     } catch (err) {
       toastError(err);
     }
@@ -356,44 +357,44 @@ export default function ChatMessages({
     }
   };
 
+  // Function to safely render text with special characters
+  const renderMessageText = (text) => {
+    return (
+      <Typography className={classes.messageText}>
+        {text}
+      </Typography>
+    );
+  };
+
   return (
     <Paper className={classes.mainContainer}>
       <div onScroll={handleScroll} className={classes.messageList}>
         {Array.isArray(messages) &&
           messages.map((item, key) => {
-            if (item.senderId === user.id) {
-              return (
-                <Box key={key} className={classes.boxRight}>
+            const isConsecutive = key > 0 && messages[key - 1].senderId === item.senderId;
+            const boxClass = item.senderId === user.id 
+              ? `${classes.boxRight} ${isConsecutive ? classes.consecutiveBoxRight : ""}`
+              : `${classes.boxLeft} ${isConsecutive ? classes.consecutiveBoxLeft : ""}`;
+
+            return (
+              <Box key={key} className={boxClass}>
+                {!isConsecutive && (
                   <Typography variant="subtitle2">
                     {item.sender.name}
                   </Typography>
-                  {item.mediaPath && checkMessageMedia(item)}
-                  {item.message}
-                  <Typography variant="caption" display="block">
-                    {datetimeToClient(item.createdAt)}
-                  </Typography>
-                </Box>
-              );
-            } else {
-              return (
-                <Box key={key} className={classes.boxLeft}>
-                  <Typography variant="subtitle2">
-                    {item.sender.name}
-                  </Typography>
-                  {item.mediaPath && checkMessageMedia(item)}
-                  {item.message}
-                  <Typography variant="caption" display="block">
-                    {datetimeToClient(item.createdAt)}
-                  </Typography>
-                </Box>
-              );
-            }
+                )}
+                {item.mediaPath && checkMessageMedia(item)}
+                {item.message && renderMessageText(item.message)}
+                <Typography variant="caption" display="block">
+                  {datetimeToClient(item.createdAt)}
+                </Typography>
+              </Box>
+            );
           })}
         <div ref={baseRef}></div>
       </div>
       <div className={classes.inputArea}>
         <FormControl variant="outlined" fullWidth>
-
           {recording ? (
             <div className={classes.recorderWrapper}>
               <IconButton
@@ -412,7 +413,6 @@ export default function ChatMessages({
               ) : (
                 <RecordingTimer />
               )}
-
               <IconButton
                 aria-label="sendRecordedAudio"
                 component="span"
@@ -422,54 +422,54 @@ export default function ChatMessages({
                 <CheckCircleOutlineIcon className={classes.sendAudioIcon} />
               </IconButton>
             </div>
-
-          )
-            :
+          ) : (
             <>
-              {medias.length > 0 ?
-                <>
-                  <Paper elevation={0} square className={classes.viewMediaInputWrapper}>
-                    <IconButton
-                      aria-label="cancel-upload"
-                      component="span"
-                      onClick={(e) => setMedias([])}
-                    >
-                      <CancelIcon className={classes.sendMessageIcons} />
-                    </IconButton>
-
-                    {loading ? (
-                      <div>
-                        <CircularProgress className={classes.circleLoading} />
-                      </div>
-                    ) : (
-                      <span>
-                        {medias[0]?.name}
-                      </span>
-                    )}
-                    <IconButton
-                      aria-label="send-upload"
-                      component="span"
-                      onClick={handleSendMedia}
-                      disabled={loading}
-                    >
-                      <SendIcon className={classes.sendMessageIcons} />
-                    </IconButton>
-                  </Paper>
-                </>
-                :
+              {medias.length > 0 ? (
+                <Paper elevation={0} square className={classes.viewMediaInputWrapper}>
+                  <IconButton
+                    aria-label="cancel-upload"
+                    component="span"
+                    onClick={(e) => setMedias([])}
+                  >
+                    <CancelIcon className={classes.sendMessageIcons} />
+                  </IconButton>
+                  {loading ? (
+                    <div>
+                      <CircularProgress className={classes.circleLoading} />
+                    </div>
+                  ) : (
+                    <span>
+                      {medias[0]?.name}
+                    </span>
+                  )}
+                  <IconButton
+                    aria-label="send-upload"
+                    component="span"
+                    onClick={handleSendMedia}
+                    disabled={loading}
+                  >
+                    <SendIcon className={classes.sendMessageIcons} />
+                  </IconButton>
+                </Paper>
+              ) : (
                 <React.Fragment>
                   <Input
                     multiline
                     value={contentMessage}
                     onKeyUp={(e) => {
-                      if (e.key === "Enter" && contentMessage.trim() !== "") {
-
+                      if (e.key === "Enter" && !e.shiftKey && contentMessage.trim() !== "") {
+                        e.preventDefault();
                         handleSendMessage(contentMessage);
                         setContentMessage("");
                       }
                     }}
                     onChange={(e) => setContentMessage(e.target.value)}
                     className={classes.input}
+                    inputProps={{
+                      "aria-label": "message input",
+                      "accept-charset": "UTF-8",
+                      "data-testid": "message-input",
+                    }}
                     startAdornment={
                       <InputAdornment position="start">
                         <FileInput disableOption={loading} handleChangeMedias={handleChangeMedias} />
@@ -489,29 +489,23 @@ export default function ChatMessages({
                           >
                             <SendIcon />
                           </IconButton>
-
-                        )
-
-                          : (
-                            <IconButton
-                              aria-label="showRecorder"
-                              component="span"
-                              disabled={loading}
-                              onClick={handleStartRecording}
-                            >
-                              <MicIcon className={classes.sendMessageIcons} />
-                            </IconButton>
-                          )
-
-                        }
+                        ) : (
+                          <IconButton
+                            aria-label="showRecorder"
+                            component="span"
+                            disabled={loading}
+                            onClick={handleStartRecording}
+                          >
+                            <MicIcon className={classes.sendMessageIcons} />
+                          </IconButton>
+                        )}
                       </InputAdornment>
                     }
                   />
                 </React.Fragment>
-              }
+              )}
             </>
-          }
-
+          )}
         </FormControl>
       </div>
     </Paper>
@@ -530,6 +524,7 @@ const FileInput = (props) => {
         disabled={disableOption}
         className={classes.uploadInput}
         onChange={handleChangeMedias}
+        accept="image/*, video/*, audio/*"
       />
       <label htmlFor="upload-button">
         <IconButton
