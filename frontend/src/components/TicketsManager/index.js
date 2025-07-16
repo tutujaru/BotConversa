@@ -80,7 +80,7 @@ const useStyles = makeStyles(theme => ({
 	},
 }));
 
-const TicketsManager = () => {
+const TicketsManager = ({ onTicketSelect, selectedTicketId }) => {
 	const classes = useStyles();
 
 	const [searchParam, setSearchParam] = useState("");
@@ -96,6 +96,9 @@ const TicketsManager = () => {
 	useEffect(() => {
 		if (tab === "search") {
 			searchInputRef.current.focus();
+		} else {
+			// Limpar pesquisa ao mudar de aba
+			setSearchParam("");
 		}
 	}, [tab]);
 
@@ -108,7 +111,6 @@ const TicketsManager = () => {
 
 		if (searchedTerm === "") {
 			setSearchParam(searchedTerm);
-			// setTab("open");
 			return;
 		}
 
@@ -212,14 +214,24 @@ const TicketsManager = () => {
 					status="open"
 					showAll={showAllTickets}
 					selectedQueueIds={selectedQueueIds}
+					onTicketSelect={onTicketSelect}
+					selectedTicketId={selectedTicketId}
 				/>
-				<TicketsList status="pending" selectedQueueIds={selectedQueueIds} setTab={setTab} />
+				<TicketsList 
+					status="pending" 
+					selectedQueueIds={selectedQueueIds} 
+					setTab={setTab}
+					onTicketSelect={onTicketSelect}
+					selectedTicketId={selectedTicketId}
+				/>
 			</TabPanel>
 			<TabPanel value={tab} name="closed" className={classes.ticketsWrapper}>
 				<TicketsList
 					status="closed"
 					showAll={true}
 					selectedQueueIds={selectedQueueIds}
+					onTicketSelect={onTicketSelect}
+					selectedTicketId={selectedTicketId}
 				/>
 			</TabPanel>
 			<TabPanel value={tab} name="search" className={classes.ticketsWrapper}>
@@ -227,6 +239,8 @@ const TicketsManager = () => {
 					searchParam={searchParam}
 					showAll={true}
 					selectedQueueIds={selectedQueueIds}
+					onTicketSelect={onTicketSelect}
+					selectedTicketId={selectedTicketId}
 				/>
 			</TabPanel>
 		</Paper>
