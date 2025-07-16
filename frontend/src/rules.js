@@ -1,9 +1,6 @@
 const rules = {
 	user: {
-		static: [
-	"tickets:reopen",
-    	"tickets:create-anytime"
-],
+		static: [],
 	},
 
 	admin: {
